@@ -50,7 +50,7 @@ struct ls1x_dwmac {
 struct ls1x_data {
 	int (*setup)(struct platform_device *pdev,
 		     struct plat_stmmacenet_data *plat_dat);
-	int (*init)(struct platform_device *pdev, void *bsp_priv);
+	int (*init)(struct device *dev, void *bsp_priv);
 };
 
 static int ls1b_dwmac_setup(struct platform_device *pdev,
@@ -81,7 +81,7 @@ static int ls1b_dwmac_setup(struct platform_device *pdev,
 	return 0;
 }
 
-static int ls1b_dwmac_syscon_init(struct platform_device *pdev, void *priv)
+static int ls1b_dwmac_syscon_init(struct device *dev, void *priv)
 {
 	struct ls1x_dwmac *dwmac = priv;
 	struct plat_stmmacenet_data *plat = dwmac->plat_dat;
@@ -100,7 +100,7 @@ static int ls1b_dwmac_syscon_init(struct platform_device *pdev, void *priv)
 					   GMAC0_USE_TXCLK | GMAC0_USE_PWM01);
 			break;
 		default:
-			dev_err(&pdev->dev, "Unsupported PHY mode %u\n",
+			dev_err(dev, "Unsupported PHY mode %u\n",
 				plat->phy_interface);
 			return -EOPNOTSUPP;
 		}
@@ -124,7 +124,7 @@ static int ls1b_dwmac_syscon_init(struct platform_device *pdev, void *priv)
 					   GMAC1_USE_TXCLK | GMAC1_USE_PWM23);
 			break;
 		default:
-			dev_err(&pdev->dev, "Unsupported PHY mode %u\n",
+			dev_err(dev, "Unsupported PHY mode %u\n",
 				plat->phy_interface);
 			return -EOPNOTSUPP;
 		}
@@ -135,7 +135,7 @@ static int ls1b_dwmac_syscon_init(struct platform_device *pdev, void *priv)
 	return 0;
 }
 
-static int ls1c_dwmac_syscon_init(struct platform_device *pdev, void *priv)
+static int ls1c_dwmac_syscon_init(struct device *dev, void *priv)
 {
 	struct ls1x_dwmac *dwmac = priv;
 	struct plat_stmmacenet_data *plat = dwmac->plat_dat;
@@ -151,7 +151,7 @@ static int ls1c_dwmac_syscon_init(struct platform_device *pdev, void *priv)
 				   PHY_INTF_RMII);
 		break;
 	default:
-		dev_err(&pdev->dev, "Unsupported PHY-mode %u\n",
+		dev_err(dev, "Unsupported PHY-mode %u\n",
 			plat->phy_interface);
 		return -EOPNOTSUPP;
 	}
