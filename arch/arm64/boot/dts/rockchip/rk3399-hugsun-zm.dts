@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/dts-v1/;
+
+#include "rk3399-zcube1-max.dts"
+
+/ {
+	model = "Hugsun ZM-RK3399";
+	compatible = "hugsun,zm-rk3399", "rockchip,rk3399";
+};
