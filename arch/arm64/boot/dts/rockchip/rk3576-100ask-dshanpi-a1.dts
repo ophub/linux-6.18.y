@@ -846,6 +846,7 @@
 };
 
 &sdhci {
+	/delete-property/ supports-cqe;
 	bus-width = <8>;
 	full-pwr-cycle-in-suspend;
 	mmc-hs400-1_8v;
