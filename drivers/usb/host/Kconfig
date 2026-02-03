@@ -104,6 +104,15 @@ config USB_XHCI_RZV2M
 	  Say 'Y' to enable the support for the xHCI host controller
 	  found in Renesas RZ/V2M SoC.
 
+config USB_XHCI_SUNXI
+        tristate "xHCI support for Allwinner SoCs"
+        depends on RESET_CONTROLLER
+        depends on ARCH_SUNXI || COMPILE_TEST
+        help
+          Say 'Y' to enable the support for the xHCI host controller
+          found in some new Allwinner ARMv8 SoCs.
+          If unsure, say N.
+
 config USB_XHCI_SIDEBAND
 	bool "xHCI support for sideband"
 	help
