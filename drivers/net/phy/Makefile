@@ -21,6 +21,14 @@ obj-$(CONFIG_PHYLIB)		+= libphy.o
 obj-$(CONFIG_PHYLIB)		+= mdio_devres.o
 obj-$(CONFIG_PHY_PACKAGE)	+= phy_package.o
 
+obj-$(CONFIG_SWCONFIG)		+= swconfig.o
+obj-$(CONFIG_RTL8306_PHY)	+= rtl8306.o
+obj-$(CONFIG_RTL8366_SMI)	+= rtl8366_smi.o
+obj-$(CONFIG_RTL8366S_PHY)	+= rtl8366s.o
+obj-$(CONFIG_RTL8366RB_PHY)	+= rtl8366rb.o
+obj-$(CONFIG_RTL8367_PHY)	+= rtl8367.o
+obj-$(CONFIG_RTL8367B_PHY)	+= rtl8367b.o
+
 obj-$(CONFIG_NETWORK_PHY_TIMESTAMPING) += mii_timestamper.o
 
 obj-$(CONFIG_SFP)		+= sfp.o
