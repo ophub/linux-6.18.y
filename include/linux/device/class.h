@@ -49,6 +49,7 @@ struct fwnode_handle;
  */
 struct class {
 	const char		*name;
+	struct module		*owner;
 
 	const struct attribute_group	**class_groups;
 	const struct attribute_group	**dev_groups;

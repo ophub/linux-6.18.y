@@ -203,6 +203,7 @@ void br_flood(struct net_bridge *br, struct sk_buff *skb,
 	      u16 vid)
 {
 	enum skb_drop_reason reason = SKB_DROP_REASON_NO_TX_TARGET;
+	const unsigned char *dest = eth_hdr(skb)->h_dest;
 	struct net_bridge_port *prev = NULL;
 	struct net_bridge_port *p;
 
@@ -219,6 +220,10 @@ void br_flood(struct net_bridge *br, struct sk_buff *skb,
 			break;
 		case BR_PKT_MULTICAST:
 			if (!(p->flags & BR_MCAST_FLOOD) && skb->dev != br->dev)
+				continue;
+			if ((p->flags & BR_BPDU_FILTER) &&
+			    unlikely(is_link_local_ether_addr(dest) &&
+				     dest[5] == 0))
 				continue;
 			break;
 		case BR_PKT_BROADCAST:

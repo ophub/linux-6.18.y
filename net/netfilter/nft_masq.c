@@ -17,6 +17,7 @@ struct nft_masq {
 	u32			flags;
 	u8			sreg_proto_min;
 	u8			sreg_proto_max;
+	bool		fullcone;
 };
 
 static const struct nla_policy nft_masq_policy[NFTA_MASQ_MAX + 1] = {
@@ -24,6 +25,7 @@ static const struct nla_policy nft_masq_policy[NFTA_MASQ_MAX + 1] = {
 		NLA_POLICY_MASK(NLA_BE32, NF_NAT_RANGE_MASK),
 	[NFTA_MASQ_REG_PROTO_MIN]	= { .type = NLA_U32 },
 	[NFTA_MASQ_REG_PROTO_MAX]	= { .type = NLA_U32 },
+	[NFTA_MASQ_REG_FULLCONE]	= { .type = NLA_U8 },
 };
 
 static int nft_masq_validate(const struct nft_ctx *ctx,
@@ -49,6 +51,9 @@ static int nft_masq_init(const struct nft_ctx *ctx,
 
 	if (tb[NFTA_MASQ_FLAGS])
 		priv->flags = ntohl(nla_get_be32(tb[NFTA_MASQ_FLAGS]));
+
+	if (tb[NFTA_MASQ_REG_FULLCONE])
+		priv->fullcone = nla_get_u8(tb[NFTA_MASQ_REG_FULLCONE]);
 
 	if (tb[NFTA_MASQ_REG_PROTO_MIN]) {
 		err = nft_parse_register_load(ctx, tb[NFTA_MASQ_REG_PROTO_MIN],
@@ -77,6 +82,9 @@ static int nft_masq_dump(struct sk_buff *skb,
 
 	if (priv->flags != 0 &&
 	    nla_put_be32(skb, NFTA_MASQ_FLAGS, htonl(priv->flags)))
+		goto nla_put_failure;
+
+	if (priv->fullcone && nla_put_u8(skb, NFTA_MASQ_REG_FULLCONE, 1))
 		goto nla_put_failure;
 
 	if (priv->sreg_proto_min) {
@@ -111,6 +119,9 @@ static void nft_masq_eval(const struct nft_expr *expr,
 
 	switch (nft_pf(pkt)) {
 	case NFPROTO_IPV4:
+		if (priv->fullcone) {
+			range.min_addr.ip = 1;
+		}
 		regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb,
 							    nft_hook(pkt),
 							    &range,
