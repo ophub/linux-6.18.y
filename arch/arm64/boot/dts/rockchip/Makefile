@@ -53,6 +53,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3368-lion-haikou.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3368-orion-r68-meta.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3368-px5-evb.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3368-r88.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-ai3399-c.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-aio-3399b.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-aio-3399c.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-am40.dtb
