@@ -96,6 +96,7 @@
 		compatible = "simple-audio-card";
 		simple-audio-card,name = "rockchip,dp1";
 		simple-audio-card,mclk-fs = <512>;
+		status = "disabled";
 
 		simple-audio-card,cpu {
 			sound-dai = <&spdif_tx5>;
@@ -111,6 +112,7 @@
 		simple-audio-card,format = "i2s";
 		simple-audio-card,name = "rockchip,acm8625m";
 		simple-audio-card,mclk-fs = <256>;
+		status = "disabled";
 
 		simple-audio-card,cpu {
 			sound-dai = <&i2s0_8ch>;
@@ -225,91 +227,41 @@
 
 &package_thermal {
 	polling-delay = <1000>;
-	polling-delay-passive = <2000>;
 
 	trips {
-		trip0: trip-fan0 {
-			temperature = <45000>;
-			hysteresis = <5000>;
-			type = "active";
-		};
-		trip1: trip-fan1 {
-			temperature = <50000>;
-			hysteresis = <5000>;
-			type = "active";
-		};
-		trip2: trip-fan2 {
+		package_fan0: package-fan0 {
 			temperature = <55000>;
-			hysteresis = <5000>;
+			hysteresis = <2000>;
 			type = "active";
 		};
-		trip3: trip-fan3 {
-			temperature = <60000>;
-			hysteresis = <5000>;
-			type = "active";
-		};
-		trip4: trip-fan4 {
+
+		package_fan1: package-fan1 {
 			temperature = <65000>;
-			hysteresis = <5000>;
+			hysteresis = <2000>;
 			type = "active";
 		};
-		trip5: trip-fan5 {
-			temperature = <70000>;
-			hysteresis = <5000>;
-			type = "active";
-		};
-		trip6: trip-fan6 {
+
+		package_fan2: package-fan2 {
 			temperature = <75000>;
-			hysteresis = <5000>;
-			type = "active";
-		};
-		pcritical: trip-fan7 {
-			temperature = <80000>;
-			hysteresis = <1000>;
+			hysteresis = <2000>;
 			type = "active";
 		};
 	};
 
 	cooling-maps {
 		map0 {
-			trip = <&trip0>;
-			cooling-device = <&fan0 0 1>;
-			contribution = <1024>;
+			trip = <&package_fan0>;
+			cooling-device = <&fan0 THERMAL_NO_LIMIT 2>;
 		};
+
 		map1 {
-			trip = <&trip1>;
-			cooling-device = <&fan0 1 2>;
-			contribution = <1024>;
+			trip = <&package_fan1>;
+			cooling-device = <&fan0 3 5>;
 		};
+
 		map2 {
-			trip = <&trip2>;
-			cooling-device = <&fan0 2 3>;
-			contribution = <1024>;
-		};
-		map3 {
-			trip = <&trip3>;
-			cooling-device = <&fan0 3 4>;
-			contribution = <1024>;
-		};
-		map4 {
-			trip = <&trip4>;
-			cooling-device = <&fan0 4 5>;
-			contribution = <1024>;
-		};
-		map5 {
-			trip = <&trip5>;
-			cooling-device = <&fan0 5 6>;
-			contribution = <1024>;
-		};
-		map6 {
-			trip = <&trip6>;
-			cooling-device = <&fan0 6 7>;
-			contribution = <1024>;
-		};
-		map7 {
-			trip = <&pcritical>;
-			cooling-device = <&fan0 7 8>;
-			contribution = <1024>;
+			trip = <&package_fan2>;
+			cooling-device = <&fan0 6 THERMAL_NO_LIMIT>;
 		};
 	};
 };
