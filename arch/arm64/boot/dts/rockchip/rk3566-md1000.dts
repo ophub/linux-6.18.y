@@ -172,20 +172,6 @@
 		vin-supply = <&vcc3v3_sys>;
 	};
 
-	vcc_3v3_wifi_en: regulator-vcc-3v3-wifi-en {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_3v3_wifi_en";
-		regulator-always-on;
-		regulator-boot-on;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		gpio = <&gpio2 RK_PC6 GPIO_ACTIVE_HIGH>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&wifi_en_h>;
-		vin-supply = <&vcc3v3_sys>;
-	};
-
 	vcc_3v3_wifi: regulator-vcc-3v3-wifi {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_3v3_wifi";
@@ -194,7 +180,7 @@
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		enable-active-high;
-		gpio = <&gpio3 RK_PB0 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&wifi_pwren_h>;
 		vin-supply = <&vcc3v3_sys>;
@@ -471,12 +457,8 @@
 			rockchip,pins = <2 RK_PB2 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 
-		wifi_en_h: wifi-en-h {
-			rockchip,pins = <2 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
 		wifi_pwren_h: wifi-pwren-h {
-			rockchip,pins = <3 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -565,7 +547,7 @@
 };
 
 &sdmmc1 {
-	/* Realtek RTL8822CS WiFi on SDIO */
+	/* AIC8800DS2 WiFi on SDIO: VID/PID enumeration + OOB host-wake IRQ via wifi@1 */
 	#address-cells = <1>;
 	#size-cells = <0>;
 	bus-width = <4>;
@@ -582,8 +564,8 @@
 	vqmmc-supply = <&vcca_1v8>;
 	status = "okay";
 
-	rtl8822cs: wifi@1 {
-		compatible = "realtek,rtl8822cs";
+	wifi@1 {
+		compatible = "aic,aic8800-sdio";
 		reg = <1>;
 		interrupt-parent = <&gpio2>;
 		interrupts = <RK_PB2 IRQ_TYPE_LEVEL_HIGH>;
@@ -617,17 +599,13 @@
 	uart-has-rtscts;
 
 	bluetooth {
-		compatible = "realtek,rtl8822cs-bt";
-		clocks = <&pmucru CLK_RTC_32K>;
-		clock-names = "lpo";
-		device-wake-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+		compatible = "aic,aic8800-bt";
 		enable-gpios = <&gpio2 RK_PB7 GPIO_ACTIVE_HIGH>;
-		host-wake-gpios = <&gpio2 RK_PC0 GPIO_ACTIVE_HIGH>;
+		device-wakeup-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+		host-wakeup-gpios = <&gpio2 RK_PC0 GPIO_ACTIVE_HIGH>;
 		max-speed = <1500000>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&bt_host_wake_l &bt_wake_l &bt_enable_h>;
-		vbat-supply = <&vcc3v3_sys>;
-		vddio-supply = <&vcca_1v8>;
 	};
 };
 
