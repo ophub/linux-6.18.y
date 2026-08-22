@@ -26,6 +26,7 @@ static int netdev_rx_queue_reconfig(struct net_device *dev,
 {
 	struct netdev_rx_queue *rxq = __netif_get_rx_queue(dev, rxq_idx);
 	const struct netdev_queue_mgmt_ops *qops = dev->queue_mgmt_ops;
+	struct netdev_queue_config qcfg;
 	void *new_mem, *old_mem;
 	int err;
 
@@ -33,7 +34,20 @@ static int netdev_rx_queue_reconfig(struct net_device *dev,
 	    !qops->ndo_queue_mem_alloc || !qops->ndo_queue_start)
 		return -EOPNOTSUPP;
 
+	if (WARN_ON_ONCE(qops->supported_params && !qops->ndo_default_qcfg))
+		return -EINVAL;
+
 	netdev_assert_locked(dev);
+
+	memset(&qcfg, 0, sizeof(qcfg));
+	if (qops->ndo_default_qcfg)
+		qops->ndo_default_qcfg(dev, &qcfg);
+
+	if (rxq->mp_params.rx_page_size) {
+		if (!(qops->supported_params & QCFG_RX_PAGE_SIZE))
+			return -EOPNOTSUPP;
+		qcfg.rx_page_size = rxq->mp_params.rx_page_size;
+	}
 
 	new_mem = kvzalloc(qops->ndo_queue_mem_size, GFP_KERNEL);
 	if (!new_mem)
@@ -70,6 +84,7 @@ static int netdev_rx_queue_reconfig(struct net_device *dev,
 	kvfree(old_mem);
 	kvfree(new_mem);
 
+	rxq->qcfg = qcfg;
 	return 0;
 
 err_start_queue:

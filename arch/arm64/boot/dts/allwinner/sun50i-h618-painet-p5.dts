@@ -56,6 +56,22 @@
 		reset-gpios = <&pio 6 18 GPIO_ACTIVE_LOW>; /* PG18 WL_REG_ON */
 		post-power-on-delay-ms = <200>;
 	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led-red {
+			label = "p5:red:status";
+			gpios = <&pio 7 5 GPIO_ACTIVE_HIGH>; /* PH5 */
+			default-state = "off";
+		};
+
+		led-blue {
+			label = "p5:blue:power";
+			gpios = <&pio 7 6 GPIO_ACTIVE_HIGH>; /* PH6 */
+			default-state = "on";
+		};
+	};
 };
 
 &cpu0 {
@@ -143,6 +159,11 @@
 	cap-mmc-hw-reset;
 	mmc-ddr-1_8v;
 	mmc-hs200-1_8v;
+	/*
+	 * Board signal integrity limits eMMC to ~120MHz;
+	 * 150MHz causes data errors (PCB layout constraint).
+	 */
+	max-frequency = <120000000>;
 	status = "okay";
 };
 

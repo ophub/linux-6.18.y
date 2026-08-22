@@ -10,6 +10,7 @@
 #include "sun50i-h616-cpu-opp.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/leds/common.h>
 
 / {
 	model = "Painet P3";
@@ -45,6 +46,22 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		regulator-always-on;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led-red {
+			label = "p3:red:status";
+			gpios = <&pio 7 5 GPIO_ACTIVE_HIGH>; /* PH5 */
+			default-state = "off";
+		};
+
+		led-blue {
+			label = "p3:blue:power";
+			gpios = <&pio 7 6 GPIO_ACTIVE_HIGH>; /* PH6 */
+			default-state = "on";
+		};
 	};
 };
 
@@ -103,6 +120,11 @@
 	cap-mmc-hw-reset;
 	mmc-ddr-1_8v;
 	mmc-hs200-1_8v;
+	/*
+	 * Board signal integrity limits eMMC to ~120MHz;
+	 * 150MHz causes data errors (PCB layout constraint).
+	 */
+	max-frequency = <120000000>;
 	status = "okay";
 };
 
