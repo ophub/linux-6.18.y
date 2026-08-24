@@ -29,6 +29,20 @@
 		stdout-path = "serial2:1500000n8";
 	};
 
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			alloc-ranges = <0x1 0x00000000 0x3 0x00000000>;
+			size = <0x0 0x20000000>;
+			linux,cma-default;
+		};
+	};
+
 	adc-keys {
 		compatible = "adc-keys";
 		io-channel-names = "buttons";
@@ -321,7 +335,8 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie2_0_rst>;
 	supports-clkreq;
-	reset-gpios = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;
+	/* Some board revisions wire PERST# to GPIO4_PB4 instead of GPIO1_PB4 */
+	reset-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_nvme>;
 	status = "okay";
 
@@ -407,7 +422,7 @@
 
 	pcie {
 		pcie2_0_rst: pcie2-0-rst {
-			rockchip,pins = <1 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <4 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		pcie2_1_rst: pcie2-1-rst {
@@ -525,10 +540,10 @@
 	status = "okay";
 };
 
-/* uart7m2 (feba0000) muxes to GPIO1_PB4/PB5, which conflicts with
- * pcie2x1l0 PERST# (pcie2_0_rst = GPIO1_PB4). If uart7 probes, the
- * pcie2x1l0 host bridge loses the pinctrl request and fails to probe,
- * taking the first 2.5G NIC down with it. Keep it disabled.
+/* uart7m2 (feba0000) muxes to GPIO1_PB4/PB5. Historically pcie2_0_rst
+ * was on GPIO1_PB4 and uart7 probing would steal the pinctrl, taking
+ * the first 2.5G NIC down. Keep uart7 disabled: some board revisions
+ * still use that pinout.
  */
 &uart7 {
 	status = "disabled";
