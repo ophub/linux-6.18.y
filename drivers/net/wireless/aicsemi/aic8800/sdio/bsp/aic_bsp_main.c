@@ -21,7 +21,7 @@ struct semaphore aicbsp_probe_semaphore;
 
 static struct platform_device *aicbsp_pdev;
 
-const struct aicbsp_firmware *aicbsp_firmware_list = fw_u02;
+const struct aicbsp_firmware *aicbsp_firmware_list = fw_u03;
 
 const struct aicbsp_firmware fw_u02[] = {
 	[AICBSP_CPMODE_WORK] = {
