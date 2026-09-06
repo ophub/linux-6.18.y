@@ -46,14 +46,14 @@
 		led-green {
 			color = <LED_COLOR_ID_GREEN>;
 			function = LED_FUNCTION_POWER;
-			gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio4 RK_PB3 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
 
 		led-red {
 			color = <LED_COLOR_ID_RED>;
 			function = LED_FUNCTION_POWER;
-			gpios = <&gpio4 RK_PB7 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;
 			default-state = "off";
 		};
 	};
@@ -245,8 +245,8 @@
 
 	leds {
 		power_led_pins: power-led-pins {
-			rockchip,pins = <4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_up>,
-					<4 RK_PB7 RK_FUNC_GPIO &pcfg_pull_up>;
+			rockchip,pins = <4 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>,
+					<4 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
