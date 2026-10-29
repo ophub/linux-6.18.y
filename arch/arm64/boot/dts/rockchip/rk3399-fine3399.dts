@@ -2,13 +2,14 @@
 
 /dts-v1/;
 
-#include <dt-bindings/input/input.h>
+#include <dt-bindings/input/linux-event-codes.h>
 #include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/input/input.h>
 #include "rk3399.dtsi"
 
 / {
-	model = "RUMU3F Fine3399";
-	compatible = "rumu3f,fine-3399","rockchip,rk3399";
+	model = "Fine3399";
+	compatible = "rockchip,fine3399", "rockchip,rk3399";
 
 	aliases {
 		ethernet0 = &gmac;
@@ -28,7 +29,7 @@
 		#clock-cells = <0>;
 	};
 
-	dc_12v: dc-12v {
+	dc_12v: regulator-dc-12v {
 		compatible = "regulator-fixed";
 		regulator-name = "dc_12v";
 		regulator-always-on;
@@ -47,7 +48,7 @@
 	};
 
 	/* switched by pmic_sleep */
-	vcc1v8_s3: vcca1v8_s3: vcc1v8-s3 {
+	vcc1v8_s3: vcca1v8_s3: regulator-vcc1v8-s3 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc1v8_s3";
 		regulator-always-on;
@@ -57,7 +58,7 @@
 		vin-supply = <&vcc_1v8>;
 	};
 
-	vcc3v3_sys: vcc3v3-sys {
+	vcc3v3_sys: vcc3v3_pcie: vcc3v3_bl: regulator-vcc3v3-sys {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3_sys";
 		regulator-always-on;
@@ -67,9 +68,9 @@
 		vin-supply = <&dc_12v>;
 	};
 
-	vcc_sys: vcc-sys {
+	vcc5v0_sys: regulator-vcc5v0-sys {
 		compatible = "regulator-fixed";
-		regulator-name = "vcc_sys";
+		regulator-name = "vcc5v0_sys";
 		regulator-always-on;
 		regulator-boot-on;
 		regulator-min-microvolt = <5000000>;
@@ -77,7 +78,7 @@
 		vin-supply = <&dc_12v>;
 	};
 
-	vcc_phy: vcc-phy-regulator {
+	vcc_phy: regulator-vcc-phy {
 		compatible = "regulator-fixed";
 		enable-active-high;
 		gpio = <&gpio0 RK_PB4 GPIO_ACTIVE_HIGH>;
@@ -96,7 +97,7 @@
 		regulator-boot-on;
 		regulator-min-microvolt = <800000>;
 		regulator-max-microvolt = <1400000>;
-		vin-supply = <&vcc_sys>;
+		vin-supply = <&vcc5v0_sys>;
 	};
 
 	leds: gpio-leds {
@@ -128,9 +129,9 @@
 
 	fan0: pwm-fan {
 		compatible = "pwm-fan";
-		cooling-levels = <0 25 50 75 100 150>;
+		cooling-levels = <0 50 100 150 200 255>;
 		#cooling-cells = <2>;
-		fan-supply = <&vcc_sys>;
+		fan-supply = <&vcc5v0_sys>;
 		pwms = <&pwm1 0 40000 0>;
 	};
 
@@ -194,18 +195,28 @@
 
 &cpu_thermal {
 	trips {
-		cpu_hot: cpu_hot {
-			hysteresis = <10000>;
+		cpu_warm: cpu_warm {
 			temperature = <55000>;
+			hysteresis = <2000>;
+			type = "active";
+		};
+
+		cpu_hot: cpu_hot {
+			temperature = <65000>;
+			hysteresis = <2000>;
 			type = "active";
 		};
 	};
 
 	cooling-maps {
 		map2 {
-			cooling-device =
-				<&fan0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+			trip = <&cpu_warm>;
+			cooling-device = <&fan0 THERMAL_NO_LIMIT 3>;
+		};
+
+		map3 {
 			trip = <&cpu_hot>;
+			cooling-device = <&fan0 4 THERMAL_NO_LIMIT>;
 		};
 	};
 };
@@ -442,7 +453,7 @@
 		regulator-ramp-delay = <1000>;
 		regulator-always-on;
 		regulator-boot-on;
-		vin-supply = <&vcc_sys>;
+		vin-supply = <&vcc5v0_sys>;
 
 		regulator-state-mem {
 			regulator-off-in-suspend;
@@ -461,7 +472,7 @@
 		regulator-ramp-delay = <1000>;
 		regulator-always-on;
 		regulator-boot-on;
-		vin-supply = <&vcc_sys>;
+		vin-supply = <&vcc5v0_sys>;
 
 		regulator-state-mem {
 			regulator-off-in-suspend;
@@ -477,10 +488,6 @@
 
 &i2s2 {
 	#sound-dai-cells = <0>;
-	status = "okay";
-};
-
-&iep_mmu {
 	status = "okay";
 };
 
@@ -620,7 +627,7 @@
 		reg = <1>;
 		compatible = "brcm,bcm4329-fmac";
 		interrupt-parent = <&gpio0>;
-		interrupts = <RK_PA3 GPIO_ACTIVE_HIGH>;
+		interrupts = <RK_PA3 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "host-wake";
 		brcm,drive-strength = <5>;
 		pinctrl-names = "default";
@@ -650,27 +657,39 @@
 	non-removable;
 	status = "okay";
 };
+/*
+&spi1 {
+	status = "okay";
+
+	norflash: flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+	};
+};
+*/
 
 &spi2 {
 	status = "okay";
 
 	panel@0 {
-		compatible = "sitronix,st7735s", "sitronix,st7735r", "sitronix,st7789v", "jianda,jd-t18003-t01";
+		status = "okay";
+		compatible = "fine3399,st7735s";
 		reg = <0>;
-		rgb;
+		/* The Fine3399 160x80 ST7735S panel uses SPI mode 0 and
+		 * MADCTL 0x68 (90 degree rotation with BGR ordering).
+		 */
+		bgr;
 		width = <80>;
 		height = <160>;
 		fps = <30>;
 		buswidth = <8>;
-		rotate = <270>;
-		backlight = <&backlight>;
+		rotate = <90>;
 		dc-gpios = <&gpio4 RK_PD5 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_LOW>;
-		led-gpios = <&gpio4 RK_PC2 GPIO_ACTIVE_HIGH>;
+		led-gpios = <&gpio4 RK_PC2 GPIO_ACTIVE_LOW>;
 		spi-max-frequency = <32000000>;
 		debug = <0>;
-		spi-cpol;
-		spi-cpha;
 	};
 };
 
@@ -785,5 +804,9 @@
 };
 
 &vopl_mmu {
+	status = "okay";
+};
+
+&iep_mmu {
 	status = "okay";
 };
