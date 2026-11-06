@@ -173,6 +173,7 @@ struct amvdec_ops {
  * @irq: mailbox interrupt used by the codec firmware
  * @context_switching: the codec can save and restore its hardware context
  * @canvas_height_align: optional capture canvas height alignment
+ * @capture_stride_align: optional capture line alignment, 32 bytes by default
  * @prepare_firmware: optional call to prepare a complete firmware package
  * @load_extended_firmware: optional call to load additional firmware bits
  * @has_pending_job: optional call if the codec has work that can run without
@@ -207,6 +208,7 @@ struct amvdec_codec_ops {
 	enum amvdec_irq irq;
 	bool context_switching;
 	u32 canvas_height_align;
+	u32 capture_stride_align;
 	int (*prepare_firmware)(struct amvdec_session *sess,
 				const u8 *data, u32 len);
 	int (*load_extended_firmware)(struct amvdec_session *sess,

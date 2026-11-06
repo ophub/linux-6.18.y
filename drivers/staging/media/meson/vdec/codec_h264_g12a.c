@@ -1814,6 +1814,7 @@ struct amvdec_codec_ops codec_h264_g12a_ops = {
 	.release = codec_h264_multi_release_firmware,
 	.context_switching = true,
 	.canvas_height_align = 16,
+	.capture_stride_align = 64,
 	.prepare_firmware = codec_h264_multi_prepare_firmware,
 	.has_pending_job = codec_h264_multi_has_pending_job,
 	.job_ready = codec_h264_multi_job_ready,
