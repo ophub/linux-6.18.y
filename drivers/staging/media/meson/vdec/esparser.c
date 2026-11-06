@@ -336,6 +336,8 @@ esparser_queue_locked(struct amvdec_session *sess,
 	v4l2_m2m_src_buf_remove_by_buf(sess->m2m_ctx, vbuf);
 
 	offset = esparser_get_offset(sess);
+	/* Start of this chunk in the VIFIFO, for codecs that must replay it. */
+	sess->input_start = sess->vififo_paddr + (offset % sess->vififo_size);
 
 	ret = amvdec_add_ts(sess, vb->timestamp, vbuf->timecode, offset, vbuf->flags);
 	if (ret) {

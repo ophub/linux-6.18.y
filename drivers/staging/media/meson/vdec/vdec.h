@@ -375,6 +375,7 @@ struct amvdec_session {
 	void *vififo_vaddr;
 	dma_addr_t vififo_paddr;
 	u32 vififo_size;
+	u32 input_start;
 	u32 vififo_curr;
 	u32 vififo_wp;
 	u32 vififo_rp;

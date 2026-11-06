@@ -709,8 +709,7 @@ static int codec_h264_multi_run(struct amvdec_session *sess)
 		goto unlock;
 	}
 	if (!h264->config_search_valid) {
-		h264->config_search_rp = amvdec_read_dos(sess->core,
-							 VLD_MEM_VIFIFO_RP);
+		h264->config_search_rp = ALIGN_DOWN(sess->input_start, 8);
 		h264->config_search_valid = true;
 	}
 	codec_h264_multi_watchdog_arm(h264);
@@ -741,8 +740,7 @@ static void codec_h264_multi_input_queued(struct amvdec_session *sess,
 		goto unlock;
 
 	if (!h264->config_search_valid) {
-		h264->config_search_rp = amvdec_read_dos(sess->core,
-							 VLD_MEM_VIFIFO_RP);
+		h264->config_search_rp = ALIGN_DOWN(sess->input_start, 8);
 		h264->config_search_valid = true;
 	}
 	WRITE_ONCE(h264->waiting_for_input, false);
@@ -784,6 +782,15 @@ static int codec_h264_multi_stop(struct amvdec_session *sess)
 	h264->vcop_control = amvdec_read_dos(core, VCOP_CTRL_REG);
 	h264->vld_decode_control = amvdec_read_dos(core, VLD_DECODE_CONTROL);
 	h264->frame_counter = amvdec_read_dos(core, H264_MULTI_FRAME_COUNTER);
+	/*
+	 * The firmware loses its parsed slice when the hardware stops. A picture
+	 * that has not started yet can be parsed again from this chunk's start.
+	 */
+	if (h264->slice_pending && !h264->pic_state.active &&
+	    h264->config_search_valid) {
+		WRITE_ONCE(h264->slice_pending, false);
+		h264->restore_config_rp = true;
+	}
 	if (h264->restore_config_rp) {
 		sess->vififo_curr = h264->config_search_rp;
 		sess->vififo_rp = h264->config_search_rp;
