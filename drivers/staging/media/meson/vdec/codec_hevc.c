@@ -1359,7 +1359,8 @@ codec_hevc_set_sao(struct amvdec_session *sess, struct hevc_frame *frame)
 	if (multi) {
 		val &= ~0xfff3;
 		val |= 0xff0; /* Set endianness for 2-byte swaps (NV12). */
-		val |= 2 << 14; /* Linear output with 64-byte line alignment. */
+		/* Linear pitch ALIGN(width, 32); 2 doubles it and overruns the plane. */
+		val |= 1 << 14;
 		if (!codec_hevc_use_fbc(sess->pixfmt_cap, hevc->is_10bit))
 			val |= BIT(0); /* Disable compressed output. */
 	} else {
@@ -1383,7 +1384,7 @@ codec_hevc_set_sao(struct amvdec_session *sess, struct hevc_frame *frame)
 	val = amvdec_read_dos(core, HEVCD_IPP_AXIIF_CONFIG);
 	if (multi) {
 		val &= ~(BIT(12) | GENMASK(9, 8) | GENMASK(5, 0));
-		val |= (2 << 8) | 0xf; /* NV12, linear, 64-byte alignment. */
+		val |= (1 << 8) | 0xf; /* NV12, linear, same pitch as SAO_CTRL1. */
 	} else {
 		val &= ~0x30;
 		val |= 0xf;
@@ -2315,6 +2316,7 @@ struct amvdec_codec_ops codec_hevc_ops = {
 };
 
 struct amvdec_codec_ops codec_hevc_g12a_ops = {
+	.canvas_height_align = 32,
 	.start = codec_hevc_start,
 	.run = codec_hevc_run,
 	.input_queued_buf = codec_hevc_input_queued,
