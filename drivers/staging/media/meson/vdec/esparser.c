@@ -486,7 +486,15 @@ void esparser_queue_all_src(struct work_struct *work)
 	if (sess->should_stop) {
 		finish = true;
 	} else if (!vbuf) {
-		finish = !codec_job;
+		/*
+		 * The running job ends from the firmware IRQ.  Finishing it here
+		 * because capture buffers are short stops the decoder mid-picture,
+		 * and the firmware cannot resume that state.
+		 */
+		finish = !codec_job &&
+			 !(codec_ops->has_pending_job &&
+			   codec_ops->has_pending_job(sess) &&
+			   amvdec_session_is_current(sess));
 	} else {
 		mutex_lock(&core->hw_lock);
 		if (atomic_read(&sess->m2m_job_running) !=
