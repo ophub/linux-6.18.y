@@ -1706,9 +1706,11 @@ static irqreturn_t codec_h264_multi_threaded_isr(struct amvdec_session *sess)
 	}
 
 	if (status == H264_MULTI_CONFIG_REQUEST) {
-		if (codec_h264_multi_configure(sess)) {
+		int err = codec_h264_multi_configure(sess);
+
+		if (err) {
 			dev_err(sess->core->dev,
-				"invalid H.264 sequence configuration\n");
+				"unable to configure H.264 sequence: %d\n", err);
 			amvdec_abort(sess);
 			yield = true;
 			goto unlock;
