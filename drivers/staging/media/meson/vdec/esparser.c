@@ -51,6 +51,7 @@
 #define PARSER_VIDEO_HOLE	0x90
 
 #define SEARCH_PATTERN_LEN	512
+#define ESPARSER_FRAME_PADDING	SZ_4K
 #define VP9_HEADER_SIZE		16
 
 static irqreturn_t esparser_isr(int irq, void *dev)
@@ -361,6 +362,18 @@ esparser_queue_locked(struct amvdec_session *sess,
 		}
 	}
 
+	/*
+	 * The decoder fetches ahead of macroblock reconstruction. Frame-based
+	 * firmware needs stream bytes past the picture, or it reports an empty
+	 * buffer while the last rows are still undecoded.
+	 */
+	if (sess->fmt_out->codec_ops->context_switching &&
+	    payload_size + ESPARSER_FRAME_PADDING + SEARCH_PATTERN_LEN <=
+	    vb2_plane_size(vb, 0)) {
+		memset((u8 *)vb2_plane_vaddr(vb, 0) + payload_size, 0,
+		       ESPARSER_FRAME_PADDING);
+		payload_size += ESPARSER_FRAME_PADDING;
+	}
 	pad_size = esparser_pad_start_code(core, vb, payload_size);
 	ret = esparser_write_data(core, phy, payload_size + pad_size);
 
