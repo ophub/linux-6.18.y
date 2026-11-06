@@ -25,6 +25,13 @@
 		stdout-path = "serial0:115200n8";
 	};
 
+	reserved-memory {
+		/* Two 1080p decode sessions do not fit in the SoC default of 256 MiB. */
+		linux,cma {
+			size = <0x0 0x20000000>;
+		};
+	};
+
 	memory@0 {
 		device_type = "memory";
 		reg = <0x0 0x0 0x0 0x80000000>;
