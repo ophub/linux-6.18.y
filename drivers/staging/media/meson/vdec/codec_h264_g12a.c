@@ -815,6 +815,11 @@ static int codec_h264_multi_resume(struct amvdec_session *sess)
 	mutex_lock(&h264->lock);
 	/* Replace a resolution-sized MV buffer only after the old run stopped. */
 	if (h264->config_valid) {
+		/* Userspace may allocate more than the minimum; use all of them. */
+		if (sess->streamon_cap && sess->num_dst_bufs > h264->capture_buf_count)
+			h264->capture_buf_count =
+				min_t(unsigned int, sess->num_dst_bufs,
+				      sess->fmt_out->max_buffers);
 		ret = codec_h264_multi_alloc_mv(sess, &h264->config,
 						h264->capture_buf_count);
 		if (ret)
@@ -1293,6 +1298,7 @@ static bool codec_h264_multi_job_ready(struct amvdec_session *sess)
 	struct v4l2_m2m_buffer *buffer;
 	unsigned long flags;
 	unsigned int free_buffers = 0;
+	unsigned int min_buffers = H264_MULTI_RUN_READY_MIN_BUFS;
 	u32 index;
 
 	if (!h264)
@@ -1312,6 +1318,8 @@ static bool codec_h264_multi_job_ready(struct amvdec_session *sess)
 		mutex_unlock(&h264->lock);
 		return true;
 	}
+	if (h264->slice_pending)
+		min_buffers = 1;
 
 	spin_lock_irqsave(&queue->rdy_spinlock, flags);
 	list_for_each_entry(buffer, &queue->rdy_queue, list) {
@@ -1321,13 +1329,13 @@ static bool codec_h264_multi_job_ready(struct amvdec_session *sess)
 			continue;
 		if (index < h264->capture_buf_count &&
 		    !codec_h264_multi_find_buffer(h264, index) &&
-		    ++free_buffers >= H264_MULTI_RUN_READY_MIN_BUFS)
+		    ++free_buffers >= min_buffers)
 			break;
 	}
 	spin_unlock_irqrestore(&queue->rdy_spinlock, flags);
 	mutex_unlock(&h264->lock);
 
-	return free_buffers >= H264_MULTI_RUN_READY_MIN_BUFS;
+	return free_buffers >= min_buffers;
 }
 
 static bool codec_h264_multi_has_pending_job(struct amvdec_session *sess)
@@ -1738,9 +1746,25 @@ static irqreturn_t codec_h264_multi_threaded_isr(struct amvdec_session *sess)
 				 picture.frame_num, picture.first_mb_in_slice,
 				 h264->pic_state.active,
 				 h264->pic_done_pending);
+			if (!picture.first_mb_in_slice)
+				h264->pic_marking = marking;
 			h264->pending_picture = picture;
 			WRITE_ONCE(h264->slice_pending, true);
 			codec_h264_multi_watchdog_disarm(h264);
+			/*
+			 * capture_queued() ignores buffers queued before
+			 * slice_pending was set, so look again after setting it.
+			 */
+			ret = codec_h264_multi_resume_pending_picture(sess);
+			if (!ret) {
+				codec_h264_multi_watchdog_arm(h264);
+			} else if (ret != -ENOBUFS) {
+				dev_err(sess->core->dev,
+					"unable to resume H.264 picture: %d\n", ret);
+				amvdec_abort(sess);
+				yield = true;
+			}
+			ret = 0;
 			goto unlock;
 		}
 		if (ret) {
