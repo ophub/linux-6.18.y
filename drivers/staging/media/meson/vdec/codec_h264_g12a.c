@@ -497,6 +497,10 @@ static void codec_h264_multi_flush_output(struct amvdec_session *sess)
 {
 	struct codec_h264_multi *h264 = sess->priv;
 
+	/* A session abort can release the context before the drain completes. */
+	if (!h264)
+		return;
+
 	mutex_lock(&h264->frames_lock);
 	__codec_h264_multi_flush_output(sess);
 	mutex_unlock(&h264->frames_lock);
